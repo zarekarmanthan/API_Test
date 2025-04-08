@@ -18,6 +18,9 @@ public class GameManager : MonoBehaviour
     [SerializeField] TextMeshProUGUI errorMsgText; // UI to display error message
 
     [Space]
+    [SerializeField] GameObject loadingPanel; // UI panel to show loading screen
+
+    [Space]
     [Header("Script References")]
     [SerializeField] API_Handler apiHandler; // Script refrence for API_handler
     [SerializeField] InputHandler inputHandler; // script reference for InputHandler
@@ -55,7 +58,10 @@ public class GameManager : MonoBehaviour
     private void UpdateWordUI(JSONNode data)
     {
         definition.text = "<b>Definition : </b>" + data[0]["meanings"][0]["definitions"][0]["definition"];
-        example.text = "<b>Example : </b>" + data[0]["meanings"][0]["definitions"][0]["example"];
+        example.text = "<b>Example : </b>" + GetExample(data);
+
+        loadingPanel.SetActive(false); // disabling the loading panel
+
     }
 
     /// <summary>
@@ -64,6 +70,8 @@ public class GameManager : MonoBehaviour
     /// <param name="error"></param>
     private void DisplayError(string error)
     {
+        loadingPanel.SetActive(false); // disabling the loading panel
+
         errorPanel.SetActive(true); // Enabling the error panel 
         errorMsgText.text = error;
     }
@@ -83,6 +91,7 @@ public class GameManager : MonoBehaviour
     // This function is called when the user click the Get Meaning Button
     private void GetwordMeaning()
     {
+        loadingPanel.SetActive(true); // Enabling the loading panel
         apiHandler.OnGetWordClick(textInput.text);
     }
 
@@ -111,6 +120,33 @@ public class GameManager : MonoBehaviour
     }
 
 
+    /// <summary>
+    /// Checks through the Api data and returns the example string value which is not null
+    /// </summary>
+    /// <param name="node"></param>
+    /// <returns></returns>
+    string GetExample(JSONNode node)
+    {
+        var meanings = node[0]["meanings"];
+
+        foreach (JSONNode meaning in meanings)
+        {
+            var definitions = meaning["definitions"].AsArray;
+
+            // Loop through all definitions in the current meaning
+            foreach (JSONNode definition in definitions.AsArray)
+            {
+                string example = definition["example"];
+                if (!string.IsNullOrEmpty(example))  // if the example value is not null then return
+                {
+                    return example;
+                }
+            }
+        }
+
+        return "No available example."; // No example values present in the API response data
+    }
+
     private void OnDestroy()
     {
         // Un-subscribing to all the events which are subscibed
@@ -121,5 +157,5 @@ public class GameManager : MonoBehaviour
         inputHandler.OnButtonClickedEvent -= GetwordMeaning;
     }
 
-
+   
 }
