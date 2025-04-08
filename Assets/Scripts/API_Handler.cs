@@ -40,7 +40,7 @@ public class API_Handler : MonoBehaviour
         }
         else
         {
-            OnError?.Invoke(wordDataRequest.error); // Triggring the Error event to display the erro message
+            OnError?.Invoke("Word Not Found"); // Triggring the Error event to display the erro message
         }
 
     }
